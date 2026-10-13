@@ -383,12 +383,7 @@ function viewToday(v) {
   kc.appendChild(top);
   var bar = el('div', 'bar'); bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-valuemin', 0); bar.setAttribute('aria-valuemax', TOTAL); bar.setAttribute('aria-valuenow', done);
   var fill = el('i'); fill.style.width = (done / TOTAL * 100) + '%'; bar.appendChild(fill); kc.appendChild(bar);
-  var msg;
-  if (st.doneToday) msg = 'Այսօրվա ընթերցանությունը ավարտված է։';
-  else if (st.cur > 0) msg = 'Այսօր դեռ չեք կարդացել։ Եթե այսօր չկարդաք, կոմբոն կընդհատվի։';
-  else if (S.log.length) msg = 'Կոմբոն ընդհատվել է։ Նոր կոմբոն կսկսվի այսօրվա ընթերցանությունից։';
-  else msg = 'Կարդացեք այսօրվա երեք հատվածները՝ կոմբոն սկսելու համար։';
-  kc.appendChild(el('div', 'small muted', 'Մնացել է՝ ' + (TOTAL - done) + ' օր' + ((!finished || st.doneToday) ? ' · ' + msg : '')));
+  kc.appendChild(el('div', 'small muted', 'Մնացել է՝ ' + (TOTAL - done) + ' օր'));
   v.appendChild(kc);
 
   // prayer list (right under the combo card)
@@ -419,12 +414,6 @@ function viewToday(v) {
     v.appendChild(dcard);
   } else {
     var n2 = done + 1, it0 = itemsState();
-    var hc = el('div', 'card');
-    hc.appendChild(el('h2', null, 'Օր ' + n2 + ' / ' + TOTAL));
-    hc.appendChild(el('p', 'muted', 'Կարդացեք երեք հատվածները և նշեք յուրաքանչյուրը։ Երբ երեքն էլ նշված լինեն, օրը կհաշվվի։'));
-    var cnt = it0.v[0] + it0.v[1] + it0.v[2];
-    hc.appendChild(el('div', 'small muted', 'Նշված է՝ ' + cnt + ' / 3'));
-    v.appendChild(hc);
     dayItems(n2).forEach(function (it, i) {
       var c2 = el('div', 'card');
       var head = el('div', 'vhead'); head.appendChild(el('b', null, refText(it.b, it.c, it.v))); head.appendChild(el('span', 'small muted', ' · ' + it.theme)); c2.appendChild(head);
