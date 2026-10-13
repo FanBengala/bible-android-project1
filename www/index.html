@@ -55,7 +55,7 @@
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--panel); border-top: 1px solid var(--line);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .tabs div { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+  .tabs div { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
   .tabs button { border: 0; background: none; padding: 12px 2px; font-size: 13px; color: var(--muted); }
   .tabs button[aria-current="page"] { color: var(--primary); font-weight: 600; box-shadow: inset 0 3px 0 var(--accent); }
 
@@ -70,6 +70,16 @@
   .btn.danger { color: var(--accent); border-color: var(--accent); }
   .grow { flex: 1 1 140px; }
 
+  .card.compact { padding: 12px 14px; }
+  .card.compact .flame { font-size: 26px; }
+  .card.compact .snum { font-size: 28px; }
+  .card.compact .srow { gap: 8px; }
+  .card.compact .week { margin: 8px 0 8px; gap: 4px; }
+  .card.compact .wd { gap: 2px; }
+  .card.compact .wd i { width: 24px; height: 24px; line-height: 24px; font-size: 13px; }
+  .card.compact .wd .small { font-size: 12px; }
+  .card.compact .big { font-size: 20px; }
+  .card.compact .bar { height: 10px; margin: 6px 0 6px; }
   .big { font-family: "Noto Serif Armenian", Georgia, serif; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .big small { font-size: 15px; font-weight: 400; color: var(--muted); }
   .bar { position: relative; height: 16px; border-radius: 999px; background: var(--track); margin: 12px 0 10px; }
@@ -155,7 +165,6 @@
     <button data-go="read">Կարդալ</button>
     <button data-go="search">Որոնում</button>
     <button data-go="marks">Նշումներ</button>
-    <button data-go="prayer">Աղոթք</button>
   </div></nav>
   <div class="sheet" id="sheet" hidden><div>
     <button class="btn" id="shMark">Նշել ★</button>
@@ -287,6 +296,7 @@ function route() {
   closeSheet();
   render(p, q);
 }
+var lastHash = null;
 function setChrome(title, opts) {
   opts = opts || {};
   $('title').textContent = title;
@@ -294,7 +304,8 @@ function setChrome(title, opts) {
   $('fMinus').hidden = $('fPlus').hidden = !opts.font;
   var tab = opts.tab;
   Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) { if (b.dataset.go === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-  window.scrollTo(0, 0);
+  if (location.hash !== lastHash) window.scrollTo(0, 0);
+  lastHash = location.hash;
 }
 function render(p, q) {
   var v = $('view'); v.innerHTML = '';
@@ -348,13 +359,13 @@ function viewToday(v) {
   setChrome('Աստվածաշունչ', { tab: 'today' });
   var st = streakInfo(), done = daysDone(), finished = done >= TOTAL;
 
-  // combo card
-  var kc = el('div', 'card');
+  // combo + progress (one compact card)
+  var kc = el('div', 'card compact');
   var row = el('div', 'srow');
   row.appendChild(el('div', 'flame', '🔥'));
-  var mid = el('div'); mid.appendChild(el('div', 'snum', String(st.cur))); mid.appendChild(el('div', 'small muted', 'օր անընդմեջ'));
-  row.appendChild(mid);
-  var bst = el('div', 'small muted', 'Լավագույնը՝ ' + st.best + ' օր'); bst.style.marginLeft = 'auto';
+  row.appendChild(el('div', 'snum', String(st.cur)));
+  row.appendChild(el('div', 'small muted', 'օր անընդմեջ'));
+  var bst = el('div', 'small muted', 'Լավագույնը՝ ' + st.best); bst.style.marginLeft = 'auto';
   row.appendChild(bst);
   kc.appendChild(row);
   var wk = el('div', 'week'); var t = today0(); var mon = addDays(t, -((t.getDay() + 6) % 7));
@@ -366,15 +377,21 @@ function viewToday(v) {
     wk.appendChild(c);
   }
   kc.appendChild(wk);
+  var top = el('div', 'row'); top.style.justifyContent = 'space-between'; top.style.alignItems = 'baseline'; top.style.gap = '6px';
+  var big = el('div', 'big'); big.appendChild(document.createTextNode(done + ' ')); big.appendChild(el('small', null, '/ ' + TOTAL + ' օր'));
+  top.appendChild(big); top.appendChild(el('div', 'big', Math.round(done / TOTAL * 100) + '%'));
+  kc.appendChild(top);
+  var bar = el('div', 'bar'); bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-valuemin', 0); bar.setAttribute('aria-valuemax', TOTAL); bar.setAttribute('aria-valuenow', done);
+  var fill = el('i'); fill.style.width = (done / TOTAL * 100) + '%'; bar.appendChild(fill); kc.appendChild(bar);
   var msg;
   if (st.doneToday) msg = 'Այսօրվա ընթերցանությունը ավարտված է։';
   else if (st.cur > 0) msg = 'Այսօր դեռ չեք կարդացել։ Եթե այսօր չկարդաք, կոմբոն կընդհատվի։';
   else if (S.log.length) msg = 'Կոմբոն ընդհատվել է։ Նոր կոմբոն կսկսվի այսօրվա ընթերցանությունից։';
   else msg = 'Կարդացեք այսօրվա երեք հատվածները՝ կոմբոն սկսելու համար։';
-  if (!finished || st.doneToday) kc.appendChild(el('p', 'small muted', msg));
+  kc.appendChild(el('div', 'small muted', 'Մնացել է՝ ' + (TOTAL - done) + ' օր' + ((!finished || st.doneToday) ? ' · ' + msg : '')));
   v.appendChild(kc);
 
-  // prayer list shortcut
+  // prayer list (right under the combo card)
   var pr = el('div', 'card');
   pr.appendChild(el('h2', null, 'Աղոթքի ցանկ' + (S.prayers.length ? ' (' + S.prayers.length + ')' : '')));
   if (S.prayers.length) {
@@ -385,18 +402,6 @@ function viewToday(v) {
   } else pr.appendChild(el('p', 'muted', 'Գրեք անուններ՝ ում համար ուզում եք աղոթել։'));
   pr.appendChild(btn(S.prayers.length ? 'Բացել ցանկը' : '+ Ավելացնել անուններ', 'btn primary', function () { go('prayer'); }));
   v.appendChild(pr);
-
-  // progress card
-  var pc = el('div', 'card');
-  pc.appendChild(el('h2', null, 'Առաջընթաց'));
-  var top = el('div', 'row'); top.style.justifyContent = 'space-between'; top.style.alignItems = 'baseline';
-  var big = el('div', 'big'); big.appendChild(document.createTextNode(done + ' ')); big.appendChild(el('small', null, '/ ' + TOTAL + ' օր կարդացված'));
-  top.appendChild(big); top.appendChild(el('div', 'big', Math.round(done / TOTAL * 100) + '%'));
-  pc.appendChild(top);
-  var bar = el('div', 'bar'); bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-valuemin', 0); bar.setAttribute('aria-valuemax', TOTAL); bar.setAttribute('aria-valuenow', done);
-  var fill = el('i'); fill.style.width = (done / TOTAL * 100) + '%'; bar.appendChild(fill); pc.appendChild(bar);
-  pc.appendChild(el('div', 'small muted', 'Կարդացված համարներ՝ ' + (done * 3) + ' / ' + (TOTAL * 3) + ' · Մնացել է՝ ' + (TOTAL - done) + ' օր'));
-  v.appendChild(pc);
 
   // reading
   if (finished) {
@@ -577,7 +582,7 @@ function viewMarks(v) {
 
 // ---------- prayer list ----------
 function viewPrayer(v) {
-  setChrome('Աղոթքի ցանկ', { tab: 'prayer' });
+  setChrome('Աղոթքի ցանկ', { tab: 'today', back: function () { go('today'); } });
   var card = el('div', 'card');
   card.appendChild(el('p', 'muted', 'Գրեք այն անունները կամ խնդրանքները, որոնց համար ուզում եք աղոթել։ Կարող եք մի քանի անուն գրել՝ յուրաքանչյուրը նոր տողում։'));
   var inp = el('textarea'); inp.rows = 3; inp.placeholder = 'Անուն կամ խնդրանք։ Յուրաքանչյուր տողը՝ առանձին կետ'; inp.maxLength = 3000; inp.setAttribute('aria-label', 'Անուն կամ խնդրանք');
