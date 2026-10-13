@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Աստվածաշունչ</title>
+<style>
+@font-face{font-family:"Noto Serif Armenian";font-weight:400;font-display:swap;src:url(fonts/noto-serif-armenian-armenian-400-normal.woff2) format("woff2");}
+@font-face{font-family:"Noto Serif Armenian";font-weight:700;font-display:swap;src:url(fonts/noto-serif-armenian-armenian-700-normal.woff2) format("woff2");}
+@font-face{font-family:"Noto Sans Armenian";font-weight:400;font-display:swap;src:url(fonts/noto-sans-armenian-armenian-400-normal.woff2) format("woff2");}
+@font-face{font-family:"Noto Sans Armenian";font-weight:600;font-display:swap;src:url(fonts/noto-sans-armenian-armenian-600-normal.woff2) format("woff2");}
+</style>
+<style>
+  :root {
+    --bg: #edf1ec; --panel: #f8faf7; --ink: #16312b; --muted: #55695f; --line: #cfdad3;
+    --primary: #1f4d41; --primary-text: #ffffff; --accent: #9b1b3a; --track: #d8e2dc; --cell: #e1e9e4;
+    --hl: #fbe9b7; --sel: #dbe9e2; --focus: #9b1b3a;
+    --fs: 20px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1916; --panel: #17251f; --ink: #e6f0eb; --muted: #93a9a0; --line: #28403a;
+      --primary: #5fb597; --primary-text: #0a1713; --accent: #ec6b88; --track: #243630; --cell: #20332c;
+      --hl: #4a3f1c; --sel: #1f3a31; --focus: #ec6b88;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1916; --panel: #17251f; --ink: #e6f0eb; --muted: #93a9a0; --line: #28403a;
+    --primary: #5fb597; --primary-text: #0a1713; --accent: #ec6b88; --track: #243630; --cell: #20332c;
+    --hl: #4a3f1c; --sel: #1f3a31; --focus: #ec6b88;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: "Noto Sans Armenian", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%;
+  }
+  h1, h2, h3 { font-family: "Noto Serif Armenian", Georgia, "Times New Roman", serif; margin: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  #app { max-width: 720px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+  .top {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line);
+  }
+  .top h1 { font-size: 19px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ibtn { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; min-width: 40px; height: 40px; padding: 0 10px; }
+  main { flex: 1; padding: 16px 14px 96px; }
+  .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--panel); border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .tabs div { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+  .tabs button { border: 0; background: none; padding: 12px 2px; font-size: 13px; color: var(--muted); }
+  .tabs button[aria-current="page"] { color: var(--primary); font-weight: 600; box-shadow: inset 0 3px 0 var(--accent); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; margin-bottom: 14px; }
+  .card h2 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { border: 1px solid var(--line); background: transparent; border-radius: 14px; padding: 11px 16px; }
+  .btn.primary { background: var(--primary); color: var(--primary-text); border-color: var(--primary); font-weight: 600; }
+  .btn.primary.done { background: transparent; color: var(--primary); }
+  .btn.danger { color: var(--accent); border-color: var(--accent); }
+  .grow { flex: 1 1 140px; }
+
+  .big { font-family: "Noto Serif Armenian", Georgia, serif; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .big small { font-size: 15px; font-weight: 400; color: var(--muted); }
+  .bar { position: relative; height: 16px; border-radius: 999px; background: var(--track); margin: 12px 0 10px; }
+  .bar i { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--primary); transition: width .35s ease; }
+  .bar b { position: absolute; top: -5px; width: 3px; height: 26px; border-radius: 2px; background: var(--accent); display: none; }
+
+  .ref { font-family: "Noto Serif Armenian", Georgia, serif; font-weight: 700; font-size: clamp(26px, 7vw, 38px); line-height: 1.2; margin: 8px 0 2px; overflow-wrap: anywhere; }
+  .verses p { font-family: "Noto Serif Armenian", Georgia, serif; font-size: 18px; line-height: 1.7; margin: 8px 0; }
+  .srow { display: flex; align-items: center; gap: 12px; }
+  .flame { font-size: 40px; line-height: 1; }
+  .snum { font-family: "Noto Serif Armenian", Georgia, serif; font-size: 44px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 14px 0 6px; text-align: center; }
+  .wd { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .wd i { display: block; width: 32px; height: 32px; border-radius: 50%; background: var(--cell); font-style: normal; line-height: 32px; font-size: 16px; font-weight: 700; color: var(--primary-text); }
+  .wd.ok i { background: var(--primary); }
+  .wd.tod i { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .wd.fut { opacity: .55; }
+  .vb { border-top: 1px solid var(--line); padding: 12px 0 6px; }
+  .vb:first-of-type { border-top: 0; }
+  .vhead { font-family: "Noto Serif Armenian", Georgia, serif; font-size: 17px; }
+  .vtext { font-family: "Noto Serif Armenian", Georgia, serif; font-size: 18px; line-height: 1.7; margin: 6px 0 10px; }
+  .btn.small { padding: 7px 12px; font-size: 14px; }
+  .vn { color: var(--accent); font-size: .72em; font-weight: 700; margin-right: 4px; font-family: "Noto Sans Armenian", system-ui, sans-serif; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 5px; }
+  .grid button { padding: 0; aspect-ratio: 1; border-radius: 9px; font-size: 11px; line-height: 1; border: 1.5px solid transparent; background: var(--cell); min-width: 0; font-variant-numeric: tabular-nums; }
+  .grid button.done { background: var(--primary); color: var(--primary-text); }
+  .grid button.missed { border-color: var(--accent); }
+  .grid button.today { box-shadow: inset 0 -4px 0 var(--accent); }
+  .grid button.sel { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+  .sw { display: inline-block; width: 13px; height: 13px; border-radius: 4px; background: var(--cell); border: 1.5px solid transparent; vertical-align: -2px; margin-right: 6px; }
+  .sw.done { background: var(--primary); } .sw.missed { border-color: var(--accent); } .sw.today { box-shadow: inset 0 -4px 0 var(--accent); }
+
+  .books { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 18px; }
+  .books button { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 12px 14px; }
+  .chap { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 8px; }
+  .chap button { height: 48px; border: 1px solid var(--line); background: var(--panel); border-radius: 12px; font-variant-numeric: tabular-nums; }
+  h3.sec { font-size: 16px; color: var(--muted); font-weight: 600; margin: 4px 2px 10px; }
+
+  .text { font-family: "Noto Serif Armenian", Georgia, serif; font-size: var(--fs); line-height: 1.75; }
+  .text .v { padding: 1px 2px; border-radius: 6px; cursor: pointer; }
+  .text .v.hl { background: var(--hl); }
+  .text .v.sel { background: var(--sel); box-shadow: 0 0 0 2px var(--primary); }
+  .text .v.bm .vn::after { content: "★"; color: var(--accent); margin-left: 2px; }
+  .pager { display: flex; gap: 10px; margin-top: 22px; }
+  .pager button { flex: 1; }
+
+  .sheet { position: fixed; left: 0; right: 0; bottom: calc(52px + env(safe-area-inset-bottom, 0px)); z-index: 7; padding: 0 14px; }
+  .sheet div { max-width: 720px; margin: 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 10px; display: flex; gap: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.18); }
+  .sheet .btn { flex: 1; }
+
+  input[type=search], input[type=date], input[type=text] { font: inherit; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+  input[type=date] { width: auto; }
+  textarea { font: inherit; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); resize: vertical; min-height: 70px; }
+  .pnames { margin: 6px 0 12px; padding-left: 20px; font-family: "Noto Serif Armenian", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  .res { border-bottom: 1px solid var(--line); padding: 12px 2px; cursor: pointer; }
+  .res b { font-family: "Noto Serif Armenian", Georgia, serif; }
+  .res p { margin: 4px 0 0; font-family: "Noto Serif Armenian", Georgia, serif; font-size: 16px; line-height: 1.6; }
+  mark { background: var(--hl); color: inherit; border-radius: 3px; }
+  .pitem { display: flex; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .pitem:last-child { border-bottom: 0; }
+  .ptext { flex: 1; min-width: 0; overflow-wrap: anywhere; font-family: "Noto Serif Armenian", Georgia, serif; font-size: 17px; line-height: 1.5; }
+  .pitem .ibtn { height: 36px; min-width: 36px; padding: 0 8px; }
+  .ibtn.warn { color: var(--accent); border-color: var(--accent); }
+  .note { color: var(--muted); font-size: 13px; margin: 4px 0; }
+  .center { text-align: center; padding: 30px 6px; }
+  @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <button class="ibtn" id="back" hidden aria-label="Հետ">‹</button>
+    <h1 id="title">Աստվածաշունչ</h1>
+    <button class="ibtn" id="fMinus" hidden aria-label="Փոքրացնել տառաչափը">A−</button>
+    <button class="ibtn" id="fPlus" hidden aria-label="Մեծացնել տառաչափը">A+</button>
+    <button class="ibtn" id="theme" aria-label="Փոխել թեման">◐</button>
+  </header>
+  <main id="view"></main>
+  <nav class="tabs" id="tabs"><div>
+    <button data-go="today">Այսօր</button>
+    <button data-go="read">Կարդալ</button>
+    <button data-go="search">Որոնում</button>
+    <button data-go="marks">Նշումներ</button>
+    <button data-go="prayer">Աղոթք</button>
+  </div></nav>
+  <div class="sheet" id="sheet" hidden><div>
+    <button class="btn" id="shMark">Նշել ★</button>
+    <button class="btn" id="shCopy">Պատճենել</button>
+    <button class="btn" id="shClose">Փակել</button>
+  </div></div>
+</div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+
+<script>
+(function () {
+'use strict';
+var HY = ['Ծննդոց', 'Ելից', 'Ղեւտացոց', 'Թվոց', 'Երկրորդ Օրինաց', 'Հեսու', 'Դատավորաց', 'Հռութ', 'Ա Թագավորաց', 'Բ Թագավորաց', 'Գ Թագավորաց', 'Դ Թագավորաց', 'Ա Մնացորդաց', 'Բ Մնացորդաց', 'Եզրաս', 'Նեեմիա', 'Եսթեր', 'Յոբ', 'Սաղմոս', 'Առակաց', 'Ժողովող', 'Երգ Երգոց', 'Եսայիա', 'Երեմիա', 'Ողբ Երեմիայի', 'Եզեկիել', 'Դանիել', 'Ովսե', 'Հովել', 'Ամովս', 'Աբդիա', 'Հովնան', 'Միքիա', 'Նաում', 'Ամբակում', 'Սոփոնիա', 'Անգէ', 'Զաքարիա', 'Մաղաքիա', 'Մատթեոս', 'Մարկոս', 'Ղուկաս', 'Հովհաննես', 'Գործք Առաքելոց', 'Հռովմեացիս', 'Ա Կորնթացիս', 'Բ Կորնթացիս', 'Գաղատացիս', 'Եփեսացիս', 'Փիլիպպեցիս', 'Կողոսացիս', 'Ա Թեսաղոնիկեցիս', 'Բ Թեսաղոնիկեցիս', 'Ա Տիմոթեոս', 'Բ Տիմոթեոս', 'Տիտոս', 'Փիլէմոն', 'Եբրայեցիս', 'Հակոբոս', 'Ա Պետրոս', 'Բ Պետրոս', 'Ա Հովհաննէս', 'Բ Հովհաննէս', 'Գ Հովհաննէս', 'Հուդա', 'Հայտնություն'];
+var OT = 39;
+// reading plan sections: [book index, chapter, from verse, to verse, theme]; each section is a multiple of 3 verses
+var PLAN = [[0, 1, 1, 30, "Արարչագործություն"], [0, 2, 1, 24, "Եդեմի այգին"], [0, 3, 1, 24, "Անկումը"], [0, 12, 1, 18, "Աբրահամի կանչը"], [0, 15, 1, 18, "Աստծո ուխտը Աբրահամի հետ"], [0, 22, 1, 24, "Աբրահամի հավատը"], [1, 3, 1, 15, "Այրվող մորենին"], [1, 14, 14, 31, "Անցումը Կարմիր ծովով"], [1, 20, 1, 21, "Տասը պատվիրանները"], [4, 6, 1, 24, "Սիրել Տեր Աստծուն"], [5, 1, 1, 18, "Հեսուի կանչը"], [7, 1, 1, 21, "Հռութի հավատարմությունը"], [18, 1, 1, 6, "Երանելի մարդը"], [18, 23, 1, 6, "Հովվի սաղմոսը"], [18, 91, 1, 15, "Աստծո պաշտպանությունը"], [18, 103, 1, 21, "Գոհություն և օրհնություն"], [18, 139, 1, 24, "Աստված ճանաչում է քեզ"], [19, 3, 1, 18, "Իմաստության ճանապարհը"], [19, 31, 10, 30, "Առաքինի կինը"], [20, 3, 1, 15, "Ամեն ինչի ժամանակը"], [17, 38, 1, 18, "Աստծո պատասխանը Հոբին"], [17, 42, 1, 6, "Հոբի խոնարհությունը"], [22, 40, 1, 30, "Մխիթարություն"], [22, 53, 1, 12, "Չարչարված ծառան"], [22, 55, 1, 12, "Աստծո հրավերը"], [23, 29, 10, 15, "Հույս աքսորում"], [24, 3, 21, 26, "Աստծո հավատարմությունը"], [32, 6, 6, 8, "Ինչ է պահանջում Տերը"], [31, 1, 1, 15, "Հովնանի փախուստը"], [31, 3, 1, 9, "Նինվեի ապաշխարությունը"], [34, 3, 17, 19, "Հավատ դժվար ժամանակներում"], [39, 5, 1, 48, "Լեռան քարոզը"], [39, 6, 1, 33, "Աղոթք և վստահություն"], [39, 7, 2, 28, "Լեռան քարոզի ավարտը"], [39, 28, 6, 20, "Հարություն և առաքելություն"], [41, 1, 26, 55, "Ավետումը"], [41, 2, 1, 21, "Քրիստոսի ծնունդը"], [41, 10, 25, 39, "Բարի սամարացին"], [41, 15, 9, 32, "Կորածի առակները"], [40, 4, 3, 41, "Սերմնացանի առակը և փոթորիկը"], [42, 1, 1, 18, "Խոսքը և լույսը"], [42, 3, 1, 21, "Նիկոդեմոսի զրույցը"], [42, 4, 1, 42, "Սամարացի կինը"], [42, 10, 2, 19, "Բարի հովիվը"], [42, 11, 2, 46, "Ղազարոսի հարությունը"], [42, 14, 1, 30, "Խաղաղություն և ճանապարհ"], [42, 15, 1, 18, "Որթատունկը"], [42, 20, 2, 31, "Հարության վկաները"], [43, 2, 1, 21, "Սուրբ Հոգու գալուստը"], [44, 8, 28, 39, "Աստծո սերը"], [44, 12, 1, 21, "Նոր կյանք"], [45, 13, 2, 13, "Սիրո մասին"], [48, 6, 10, 18, "Աստծո սպառազինությունը"], [49, 4, 4, 9, "Ուրախություն և խաղաղություն"], [47, 5, 16, 24, "Հոգու պտուղը"], [50, 3, 12, 17, "Սեր և գոհունակություն"], [61, 4, 7, 21, "Սերը Աստծուց է"], [65, 21, 1, 9, "Նոր երկինք և նոր երկիր"]];
+var FLAT = [];
+PLAN.forEach(function (s) { for (var v = s[2]; v <= s[3]; v++) FLAT.push({ b: s[0], c: s[1], v: v, theme: s[4] }); });
+var TOTAL = Math.floor(FLAT.length / 3);   // 365 days
+// The year's 1095 verses are shuffled once per install (random seed saved on the device), so every day gets 3 random
+// verses, always from 3 different chapters, and every verse is used exactly once over the 365 days.
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+var SCHEDULE = null;
+function buildSchedule(seed) {
+  var rnd = mulberry32(seed), it = FLAT.slice(), i, j, t;
+  for (i = it.length - 1; i > 0; i--) { j = Math.floor(rnd() * (i + 1)); t = it[i]; it[i] = it[j]; it[j] = t; }
+  function k(x) { return x.b + ':' + x.c; }
+  function cf(d) { var a = k(it[3 * d]), b = k(it[3 * d + 1]), c = k(it[3 * d + 2]); return (a === b ? 1 : 0) + (a === c ? 1 : 0) + (b === c ? 1 : 0); }
+  for (var pass = 0; pass < 300; pass++) {
+    var any = false;
+    for (var d = 0; d < TOTAL; d++) {
+      if (cf(d) === 0) continue; any = true;
+      for (var tries = 0; tries < 500; tries++) {
+        var e = Math.floor(rnd() * TOTAL); if (e === d) continue;
+        var pi = 3 * d + Math.floor(rnd() * 3), pj = 3 * e + Math.floor(rnd() * 3), before = cf(d) + cf(e);
+        t = it[pi]; it[pi] = it[pj]; it[pj] = t;
+        if (cf(d) + cf(e) < before) break;          // keep only swaps that reduce the number of repeated chapters
+        t = it[pi]; it[pi] = it[pj]; it[pj] = t;
+      }
+    }
+    if (!any) break;
+  }
+  return it;
+}
+function dayItems(d) { if (!SCHEDULE) SCHEDULE = buildSchedule(S.seed); return [SCHEDULE[3 * (d - 1)], SCHEDULE[3 * (d - 1) + 1], SCHEDULE[3 * (d - 1) + 2]]; }
+
+var BIBLE = null;
+var KEY = 'bible-app-v1';
+var S = { log: [], items: { day: 0, v: [0, 0, 0] }, marks: {}, fs: 20, theme: 'auto', last: null, seed: 0, prayers: [] };
+var selVerse = null, editId = null, delId = null;
+
+function $(id) { return document.getElementById(id); }
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function btn(text, cls, fn) { var b = el('button', cls || 'btn', text); b.type = 'button'; if (fn) b.addEventListener('click', fn); return b; }
+function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function toISO(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseISO(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+function today0() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+var WSHORT = ['Երկ','Երք','Չրք','Հնգ','Ուր','Շբթ','Կիր'];
+// combo (streak): consecutive calendar days with a finished reading day; broken if a day is skipped
+function streakInfo() {
+  var set = {}; S.log.forEach(function (d) { set[d] = 1; });
+  var t = today0(), doneToday = !!set[toISO(t)];
+  var d = doneToday ? t : addDays(t, -1), cur = 0;
+  while (set[toISO(d)]) { cur++; d = addDays(d, -1); }
+  var dates = Object.keys(set).sort(), best = 0, run = 0, prev = null;
+  dates.forEach(function (ds) { run = (prev && Math.round((parseISO(ds) - parseISO(prev)) / 86400000) === 1) ? run + 1 : 1; if (run > best) best = run; prev = ds; });
+  return { cur: cur, best: best, doneToday: doneToday, set: set };
+}
+function daysDone() { return Math.min(S.log.length, TOTAL); }
+function itemsState() { var n = daysDone() + 1; if (S.items.day !== n) S.items = { day: n, v: [0, 0, 0] }; return S.items; }
+function refText(b, c, v1, v2) { return HY[b] + ' ' + c + (v1 ? ':' + v1 + (v2 && v2 !== v1 ? '–' + v2 : '') : ''); }
+
+// ---------- storage ----------
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load() {
+  try {
+    var p = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (p) {
+      if (Array.isArray(p.log)) { var seen = {}; S.log = p.log.filter(function (x) { if (typeof x !== 'string' || !parseISO(x) || seen[x]) return false; seen[x] = 1; return true; }).sort(); }
+      if (p.items && typeof p.items.day === 'number' && Array.isArray(p.items.v) && p.items.v.length === 3) S.items = { day: p.items.day, v: p.items.v.map(Number) };
+      if (typeof p.seed === 'number' && p.seed > 0) S.seed = p.seed >>> 0;
+      if (Array.isArray(p.prayers)) S.prayers = p.prayers.filter(function (x) { return x && typeof x.t === 'string' && x.t.trim(); }).map(function (x, i) { return { id: typeof x.id === 'number' ? x.id : Date.now() + i, t: x.t.slice(0, 300) }; });
+      if (p.marks && typeof p.marks === 'object') S.marks = p.marks;
+      if (typeof p.fs === 'number') S.fs = clamp(p.fs, 14, 34);
+      if (p.theme === 'light' || p.theme === 'dark') S.theme = p.theme;
+      if (p.last && typeof p.last.b === 'number') S.last = p.last;
+    }
+  } catch (e) {}
+}
+function applyTheme() {
+  var r = document.documentElement;
+  if (S.theme === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', S.theme);
+}
+function applyFont() { document.documentElement.style.setProperty('--fs', S.fs + 'px'); }
+
+// IndexedDB for an imported text (too big for localStorage)
+function idb() { return new Promise(function (res, rej) { var r = indexedDB.open('bible-app', 1); r.onupgradeneeded = function () { r.result.createObjectStore('kv'); }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }
+function idbGet(k) { return idb().then(function (db) { return new Promise(function (res, rej) { var q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = function () { res(q.result); }; q.onerror = function () { rej(q.error); }; }); }); }
+function idbSet(k, v) { return idb().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = function () { rej(t.error); }; }); }); }
+function idbDel(k) { return idb().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction('kv', 'readwrite'); t.objectStore('kv').delete(k); t.oncomplete = res; t.onerror = function () { rej(t.error); }; }); }); }
+
+function norm(d) {
+  var books = Array.isArray(d) ? d : (d && Array.isArray(d.books) ? d.books : null);
+  if (!books || books.length !== 66) return null;
+  for (var i = 0; i < 66; i++) {
+    if (!Array.isArray(books[i]) || !books[i].length || !Array.isArray(books[i][0]) || typeof books[i][0][0] !== 'string') return null;
+  }
+  var names = (!Array.isArray(d) && Array.isArray(d.names) && d.names.length === 66) ? d.names : null;
+  return { books: books, names: names };
+}
+function loadBible() {
+  return idbGet('bible').then(function (d) { var n = norm(d); if (n) return n; throw 0; })
+    .catch(function () {
+      return fetch('bible-hy.json').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) { var n = norm(d); if (n) return n; throw 0; });
+    }).catch(function () { return null; });
+}
+function useBible(n) { BIBLE = n.books; if (n.names) HY = n.names; }
+
+// ---------- router ----------
+function go(path) { location.hash = '#/' + path; }
+function route() {
+  var h = location.hash.replace(/^#\/?/, '');
+  var qi = h.indexOf('?'); var path = qi < 0 ? h : h.slice(0, qi); var q = new URLSearchParams(qi < 0 ? '' : h.slice(qi + 1));
+  var p = path.split('/').filter(Boolean);
+  if (!p.length) p = ['today'];
+  closeSheet();
+  render(p, q);
+}
+function setChrome(title, opts) {
+  opts = opts || {};
+  $('title').textContent = title;
+  $('back').hidden = !opts.back; $('back').onclick = opts.back || null;
+  $('fMinus').hidden = $('fPlus').hidden = !opts.font;
+  var tab = opts.tab;
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) { if (b.dataset.go === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  window.scrollTo(0, 0);
+}
+function render(p, q) {
+  var v = $('view'); v.innerHTML = '';
+  if (p[0] === 'prayer') return viewPrayer(v);
+  if (!BIBLE) return viewSetup(v);
+  var t = p[0];
+  if (t === 'read') {
+    if (p.length === 1) return viewBooks(v);
+    var b = +p[1];
+    if (!(b >= 0 && b < 66)) return viewBooks(v);
+    if (p.length === 2) return viewChapters(v, b);
+    var c = +p[2]; if (!(c >= 1 && c <= BIBLE[b].length)) return viewChapters(v, b);
+    return viewReader(v, b, c, q);
+  }
+  if (t === 'search') return viewSearch(v, q.get('q') || '');
+  if (t === 'marks') return viewMarks(v);
+  return viewToday(v);
+}
+
+// ---------- setup / import ----------
+function viewSetup(v) {
+  setChrome('Աստվածաշունչ', { tab: 'today' });
+  var c = el('div', 'card');
+  c.appendChild(el('h2', null, 'Աստվածաշնչի տեքստը բեռնված չէ'));
+  c.appendChild(el('p', 'muted', 'Ընտրեք տեքստի ֆայլը (bible-hy.json)։ Այն կպահվի միայն այս սարքում, և հետագայում կրկին ընտրել պետք չէ։'));
+  var msg = el('p', 'note', ''); msg.id = 'impMsg';
+  c.appendChild(btn('Ընտրել ֆայլը', 'btn primary', function () { $('file').click(); }));
+  c.appendChild(msg);
+  v.appendChild(c);
+}
+function importFile(f) {
+  var msg = $('impMsg'); if (msg) msg.textContent = 'Բեռնվում է…';
+  f.text().then(function (t) {
+    var d = JSON.parse(t); var n = norm(d);
+    if (!n) throw new Error('bad');
+    return idbSet('bible', d).then(function () { useBible(n); route(); });
+  }).catch(function () {
+    var m = $('impMsg'); if (m) m.textContent = 'Ֆայլը չհաջողվեց կարդալ․ ստուգեք, որ դա bible-hy.json-ն է։';
+  });
+}
+
+// ---------- today / plan ----------
+function openBtn(it) { return btn('Բացել գլխում', 'btn small', function () { go('read/' + it.b + '/' + it.c + '?s=' + it.v); }); }
+function toggleItem(i) {
+  var st = streakInfo(); if (st.doneToday || daysDone() >= TOTAL) return;
+  var it = itemsState(); it.v[i] = it.v[i] ? 0 : 1;
+  if (it.v[0] && it.v[1] && it.v[2]) S.log.push(toISO(today0()));
+  save(); route();
+}
+function viewToday(v) {
+  setChrome('Աստվածաշունչ', { tab: 'today' });
+  var st = streakInfo(), done = daysDone(), finished = done >= TOTAL;
+
+  // combo card
+  var kc = el('div', 'card');
+  var row = el('div', 'srow');
+  row.appendChild(el('div', 'flame', '🔥'));
+  var mid = el('div'); mid.appendChild(el('div', 'snum', String(st.cur))); mid.appendChild(el('div', 'small muted', 'օր անընդմեջ'));
+  row.appendChild(mid);
+  var bst = el('div', 'small muted', 'Լավագույնը՝ ' + st.best + ' օր'); bst.style.marginLeft = 'auto';
+  row.appendChild(bst);
+  kc.appendChild(row);
+  var wk = el('div', 'week'); var t = today0(); var mon = addDays(t, -((t.getDay() + 6) % 7));
+  for (var i = 0; i < 7; i++) {
+    var d = addDays(mon, i), iso = toISO(d), isToday = iso === toISO(t);
+    var c = el('div', 'wd' + (isToday ? ' tod' : '') + (st.set[iso] ? ' ok' : '') + (d > t ? ' fut' : ''));
+    c.appendChild(el('span', 'small muted', WSHORT[i]));
+    c.appendChild(el('i', null, st.set[iso] ? '✓' : ''));
+    wk.appendChild(c);
+  }
+  kc.appendChild(wk);
+  var msg;
+  if (st.doneToday) msg = 'Այսօրվա ընթերցանությունը ավարտված է։';
+  else if (st.cur > 0) msg = 'Այսօր դեռ չեք կարդացել։ Եթե այսօր չկարդաք, կոմբոն կընդհատվի։';
+  else if (S.log.length) msg = 'Կոմբոն ընդհատվել է։ Նոր կոմբոն կսկսվի այսօրվա ընթերցանությունից։';
+  else msg = 'Կարդացեք այսօրվա երեք հատվածները՝ կոմբոն սկսելու համար։';
+  if (!finished || st.doneToday) kc.appendChild(el('p', 'small muted', msg));
+  v.appendChild(kc);
+
+  // prayer list shortcut
+  var pr = el('div', 'card');
+  pr.appendChild(el('h2', null, 'Աղոթքի ցանկ' + (S.prayers.length ? ' (' + S.prayers.length + ')' : '')));
+  if (S.prayers.length) {
+    var ul = el('ul', 'pnames');
+    S.prayers.slice(0, 5).forEach(function (x) { ul.appendChild(el('li', null, x.t)); });
+    pr.appendChild(ul);
+    if (S.prayers.length > 5) pr.appendChild(el('p', 'small muted', '… և ևս ' + (S.prayers.length - 5)));
+  } else pr.appendChild(el('p', 'muted', 'Գրեք անուններ՝ ում համար ուզում եք աղոթել։'));
+  pr.appendChild(btn(S.prayers.length ? 'Բացել ցանկը' : '+ Ավելացնել անուններ', 'btn primary', function () { go('prayer'); }));
+  v.appendChild(pr);
+
+  // progress card
+  var pc = el('div', 'card');
+  pc.appendChild(el('h2', null, 'Առաջընթաց'));
+  var top = el('div', 'row'); top.style.justifyContent = 'space-between'; top.style.alignItems = 'baseline';
+  var big = el('div', 'big'); big.appendChild(document.createTextNode(done + ' ')); big.appendChild(el('small', null, '/ ' + TOTAL + ' օր կարդացված'));
+  top.appendChild(big); top.appendChild(el('div', 'big', Math.round(done / TOTAL * 100) + '%'));
+  pc.appendChild(top);
+  var bar = el('div', 'bar'); bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-valuemin', 0); bar.setAttribute('aria-valuemax', TOTAL); bar.setAttribute('aria-valuenow', done);
+  var fill = el('i'); fill.style.width = (done / TOTAL * 100) + '%'; bar.appendChild(fill); pc.appendChild(bar);
+  pc.appendChild(el('div', 'small muted', 'Կարդացված համարներ՝ ' + (done * 3) + ' / ' + (TOTAL * 3) + ' · Մնացել է՝ ' + (TOTAL - done) + ' օր'));
+  v.appendChild(pc);
+
+  // reading
+  if (finished) {
+    var fc = el('div', 'card'); fc.appendChild(el('h2', null, 'Ծրագիրն ավարտված է ✓')); fc.appendChild(el('p', 'muted', 'Կարդացված է բոլոր ' + TOTAL + ' օրը։'));
+    v.appendChild(fc);
+  } else if (st.doneToday) {
+    var n = done;
+    var dcard = el('div', 'card');
+    dcard.appendChild(el('h2', null, 'Օր ' + n + ' ավարտված է ✓'));
+    if (n < TOTAL) dcard.appendChild(el('p', 'muted', 'Հաջորդ ընթերցանությունը կհայտնվի վաղը (օր ' + (n + 1) + ')։'));
+    dayItems(n).forEach(function (it) {
+      var r = el('div', 'vb'); r.appendChild(el('b', 'vhead', refText(it.b, it.c, it.v)));
+      var p = el('p', 'vtext'); p.textContent = BIBLE[it.b][it.c - 1][it.v - 1] || ''; r.appendChild(p); r.appendChild(openBtn(it)); dcard.appendChild(r);
+    });
+    v.appendChild(dcard);
+  } else {
+    var n2 = done + 1, it0 = itemsState();
+    var hc = el('div', 'card');
+    hc.appendChild(el('h2', null, 'Օր ' + n2 + ' / ' + TOTAL));
+    hc.appendChild(el('p', 'muted', 'Կարդացեք երեք հատվածները և նշեք յուրաքանչյուրը։ Երբ երեքն էլ նշված լինեն, օրը կհաշվվի։'));
+    var cnt = it0.v[0] + it0.v[1] + it0.v[2];
+    hc.appendChild(el('div', 'small muted', 'Նշված է՝ ' + cnt + ' / 3'));
+    v.appendChild(hc);
+    dayItems(n2).forEach(function (it, i) {
+      var c2 = el('div', 'card');
+      var head = el('div', 'vhead'); head.appendChild(el('b', null, refText(it.b, it.c, it.v))); head.appendChild(el('span', 'small muted', ' · ' + it.theme)); c2.appendChild(head);
+      var p = el('p', 'vtext'); p.textContent = BIBLE[it.b][it.c - 1][it.v - 1] || ''; c2.appendChild(p);
+      var r = el('div', 'row');
+      r.appendChild(openBtn(it));
+      var on = !!it0.v[i];
+      r.appendChild(btn(on ? 'Կարդացված է ✓' : 'Կարդացի', 'btn primary grow' + (on ? ' done' : ''), function () { toggleItem(i); }));
+      c2.appendChild(r);
+      v.appendChild(c2);
+    });
+  }
+
+  v.appendChild(el('p', 'note', 'Առաջընթացը և նշումները պահվում են միայն այս սարքում։'));
+}
+
+// ---------- library ----------
+function viewBooks(v) {
+  setChrome('Կարդալ', { tab: 'read' });
+  if (S.last && BIBLE[S.last.b] && BIBLE[S.last.b][S.last.c - 1]) {
+    var c = el('div', 'card');
+    c.appendChild(el('div', 'small muted', 'Վերջին կարդացածը'));
+    c.appendChild(el('div', 'ref', refText(S.last.b, S.last.c)));
+    c.appendChild(btn('Շարունակել', 'btn primary', function () { go('read/' + S.last.b + '/' + S.last.c); }));
+    v.appendChild(c);
+  }
+  [['Հին Կտակարան', 0, OT], ['Նոր Կտակարան', OT, 66]].forEach(function (g) {
+    v.appendChild(el('h3', 'sec', g[0]));
+    var box = el('div', 'books');
+    for (var i = g[1]; i < g[2]; i++) (function (i) { box.appendChild(btn(HY[i], null, function () { go('read/' + i); })); })(i);
+    v.appendChild(box);
+  });
+}
+function viewChapters(v, b) {
+  setChrome(HY[b], { tab: 'read', back: function () { go('read'); } });
+  var box = el('div', 'chap');
+  for (var c = 1; c <= BIBLE[b].length; c++) (function (c) { box.appendChild(btn(String(c), null, function () { go('read/' + b + '/' + c); })); })(c);
+  v.appendChild(box);
+}
+
+// ---------- reader ----------
+function viewReader(v, b, c, q) {
+  setChrome(HY[b] + ' ' + c, { tab: 'read', font: true, back: function () { go('read/' + b); } });
+  S.last = { b: b, c: c }; save();
+  var hl = (q.get('v') || '').split('-').map(Number); var h1 = hl[0] || 0, h2 = hl[1] || hl[0] || 0;
+  var sv = +(q.get('s') || 0);
+  var box = el('div', 'text'); var first = null;
+  BIBLE[b][c - 1].forEach(function (t, i) {
+    var n = i + 1;
+    if (!t) return;                                  // a few verse numbers are absent in this edition
+    var s = el('span', 'v' + (n >= h1 && n <= h2 && h1 ? ' hl' : '') + (S.marks[b + ':' + c + ':' + n] ? ' bm' : ''));
+    s.dataset.n = n;
+    s.appendChild(el('span', 'vn', String(n)));
+    s.appendChild(document.createTextNode(t + ' '));
+    s.addEventListener('click', function () { pick(b, c, n, s); });
+    box.appendChild(s);
+    if (!first && ((h1 && n === h1) || (sv && n === sv))) first = s;
+  });
+  v.appendChild(box);
+  var pg = el('div', 'pager');
+  var pr = prevCh(b, c), nx = nextCh(b, c);
+  var pb = btn('‹ ' + (pr ? refText(pr[0], pr[1]) : ''), 'btn', function () { go('read/' + pr[0] + '/' + pr[1]); }); pb.disabled = !pr;
+  var nb = btn((nx ? refText(nx[0], nx[1]) : '') + ' ›', 'btn', function () { go('read/' + nx[0] + '/' + nx[1]); }); nb.disabled = !nx;
+  pg.appendChild(pb); pg.appendChild(nb); v.appendChild(pg);
+  if (first) { setTimeout(function () { first.scrollIntoView({ block: 'center' }); if (sv) pick(b, c, sv, first); }, 30); }
+}
+function prevCh(b, c) { if (c > 1) return [b, c - 1]; if (b > 0) return [b - 1, BIBLE[b - 1].length]; return null; }
+function nextCh(b, c) { if (c < BIBLE[b].length) return [b, c + 1]; if (b < 65) return [b + 1, 1]; return null; }
+function closeSheet() {
+  $('sheet').hidden = true;
+  if (selVerse && selVerse.node) selVerse.node.classList.remove('sel');
+  selVerse = null;
+}
+function pick(b, c, n, node) {
+  if (selVerse && selVerse.node) selVerse.node.classList.remove('sel');
+  if (selVerse && selVerse.node === node) { closeSheet(); return; }
+  selVerse = { b: b, c: c, n: n, node: node };
+  node.classList.add('sel');
+  $('shMark').textContent = S.marks[b + ':' + c + ':' + n] ? 'Հանել նշումը' : 'Նշել ★';
+  $('sheet').hidden = false;
+}
+
+// ---------- search ----------
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function viewSearch(v, q0) {
+  setChrome('Որոնում', { tab: 'search' });
+  var inp = el('input'); inp.type = 'search'; inp.placeholder = 'Բառ կամ հասցե, օր․ սէր կամ Հովհաննես 3:16'; inp.value = q0;
+  inp.setAttribute('aria-label', 'Որոնում');
+  var out = el('div'); out.style.marginTop = '12px';
+  v.appendChild(inp); v.appendChild(out);
+  var timer = null;
+  function run() {
+    out.innerHTML = '';
+    var q = inp.value.trim();
+    if (q.length < 2) { out.appendChild(el('p', 'note', 'Գրեք առնվազն 2 տառ։')); return; }
+    var m = /^(.+?)\s+(\d+)(?::(\d+))?$/.exec(q);
+    if (m) {
+      var fold = function (x) { return x.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').replace(/է/g, 'ե').replace(/յ/g, 'հ'); };
+      var nm = fold(m[1]);
+      for (var i = 0; i < 66; i++) {
+        var hn = fold(HY[i]);
+        if (hn === nm || hn.indexOf(nm) === 0 || hn.replace(/^[աբգ] /, '').indexOf(nm) === 0) {
+          var ch = +m[2];
+          if (ch >= 1 && ch <= BIBLE[i].length) {
+            var vv = m[3] ? +m[3] : 0;
+            var r = el('div', 'res'); r.appendChild(el('b', null, 'Բացել՝ ' + refText(i, ch, vv)));
+            (function (i, ch, vv) { r.addEventListener('click', function () { go('read/' + i + '/' + ch + (vv ? '?s=' + vv : '')); }); })(i, ch, vv);
+            out.appendChild(r);
+          }
+          break;
+        }
+      }
+    }
+    var letters = Array.from(q.replace(/[՛՜՞՝՚]/g, '')); var pat = letters.map(function (c) { return escRe(c); }).join('[՛՜՞՚]*');
+    var re; try { re = new RegExp(pat, 'i'); } catch (e) { return; }
+    var n = 0, MAX = 150;
+    for (var b = 0; b < 66 && n < MAX; b++)
+      for (var c = 0; c < BIBLE[b].length && n < MAX; c++)
+        for (var k = 0; k < BIBLE[b][c].length && n < MAX; k++) {
+          var t = BIBLE[b][c][k], mm = t && re.exec(t);
+          if (!mm) continue;
+          n++;
+          var row = el('div', 'res'); row.appendChild(el('b', null, refText(b, c + 1, k + 1)));
+          var p = el('p');
+          var s0 = Math.max(0, mm.index - 50), e0 = Math.min(t.length, mm.index + mm[0].length + 90);
+          if (s0 > 0) p.appendChild(document.createTextNode('…'));
+          p.appendChild(document.createTextNode(t.slice(s0, mm.index)));
+          var mk = el('mark', null, mm[0]); p.appendChild(mk);
+          p.appendChild(document.createTextNode(t.slice(mm.index + mm[0].length, e0) + (e0 < t.length ? '…' : '')));
+          row.appendChild(p);
+          (function (b, c, k) { row.addEventListener('click', function () { go('read/' + b + '/' + (c + 1) + '?s=' + (k + 1)); }); })(b, c, k);
+          out.appendChild(row);
+        }
+    if (!n) out.appendChild(el('p', 'note', 'Ոչինչ չգտնվեց։'));
+    else if (n >= MAX) out.appendChild(el('p', 'note', 'Ցուցադրված են առաջին ' + MAX + ' արդյունքները։ Ճշգրտեք որոնումը։'));
+  }
+  inp.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 250); });
+  if (q0) run(); else inp.focus();
+}
+
+// ---------- bookmarks ----------
+function viewMarks(v) {
+  setChrome('Նշումներ', { tab: 'marks' });
+  var keys = Object.keys(S.marks).map(function (k) { return k.split(':').map(Number); });
+  keys.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; });
+  if (!keys.length) { var c = el('div', 'center muted', 'Նշումներ դեռ չկան։ Կարդալիս սեղմեք համարի վրա՝ նշելու համար։'); v.appendChild(c); return; }
+  keys.forEach(function (k) {
+    var t = BIBLE[k[0]] && BIBLE[k[0]][k[1] - 1] && BIBLE[k[0]][k[1] - 1][k[2] - 1];
+    if (!t) return;
+    var row = el('div', 'res'); row.appendChild(el('b', null, refText(k[0], k[1], k[2]))); row.appendChild(el('p', null, t));
+    row.addEventListener('click', function () { go('read/' + k[0] + '/' + k[1] + '?s=' + k[2]); });
+    v.appendChild(row);
+  });
+}
+
+// ---------- prayer list ----------
+function viewPrayer(v) {
+  setChrome('Աղոթքի ցանկ', { tab: 'prayer' });
+  var card = el('div', 'card');
+  card.appendChild(el('p', 'muted', 'Գրեք այն անունները կամ խնդրանքները, որոնց համար ուզում եք աղոթել։ Կարող եք մի քանի անուն գրել՝ յուրաքանչյուրը նոր տողում։'));
+  var inp = el('textarea'); inp.rows = 3; inp.placeholder = 'Անուն կամ խնդրանք։ Յուրաքանչյուր տողը՝ առանձին կետ'; inp.maxLength = 3000; inp.setAttribute('aria-label', 'Անուն կամ խնդրանք');
+  function add() {
+    var lines = inp.value.split(/\r?\n/).map(function (x) { return x.trim().slice(0, 300); }).filter(Boolean); if (!lines.length) return;
+    lines.forEach(function (t, k) { S.prayers.push({ id: Date.now() * 1000 + k * 7 + Math.floor(Math.random() * 7), t: t }); });
+    save(); editId = delId = null; route();
+    setTimeout(function () { var i = document.querySelector('#view textarea'); if (i) i.focus(); }, 0);
+  }
+  var row = el('div', 'row'); row.style.marginTop = '10px';
+  row.appendChild(btn('Ավելացնել', 'btn primary grow', add));
+  card.appendChild(inp); card.appendChild(row); v.appendChild(card);
+
+  var list = el('div', 'card');
+  list.appendChild(el('h2', null, 'Ցանկ' + (S.prayers.length ? ' (' + S.prayers.length + ')' : '')));
+  if (!S.prayers.length) list.appendChild(el('p', 'muted', 'Ցանկը դեռ դատարկ է։'));
+  S.prayers.forEach(function (it, idx) {
+    var r = el('div', 'pitem');
+    if (editId === it.id) {
+      var ei = el('input'); ei.type = 'text'; ei.value = it.t; ei.maxLength = 300; ei.setAttribute('aria-label', 'Խմբագրել'); ei.style.flex = '1';
+      var saveEdit = function () { var t = ei.value.trim(); if (t) { it.t = t; save(); } editId = null; route(); };
+      ei.addEventListener('keydown', function (e) { if (e.key === 'Enter') saveEdit(); else if (e.key === 'Escape') { editId = null; route(); } });
+      r.appendChild(ei); r.appendChild(btn('Պահել', 'btn small', saveEdit));
+      setTimeout(function () { ei.focus(); ei.setSelectionRange(ei.value.length, ei.value.length); }, 0);
+    } else {
+      r.appendChild(el('span', 'ptext', it.t));
+      var ed = btn('✎', 'ibtn', function () { editId = it.id; delId = null; route(); }); ed.setAttribute('aria-label', 'Խմբագրել');
+      var asking = delId === it.id;
+      var dl = btn(asking ? 'Ջնջե՞լ' : '✕', 'ibtn' + (asking ? ' warn' : ''), function () {
+        if (delId === it.id) { S.prayers.splice(idx, 1); save(); delId = null; route(); return; }
+        delId = it.id; route();
+        setTimeout(function () { if (delId === it.id && (location.hash.indexOf('#/prayer') === 0)) { delId = null; route(); } }, 3000);
+      });
+      dl.setAttribute('aria-label', 'Ջնջել'); r.appendChild(ed); r.appendChild(dl);
+    }
+    list.appendChild(r);
+  });
+  v.appendChild(list);
+  v.appendChild(el('p', 'note', 'Ցանկը պահվում է միայն այս սարքում։'));
+}
+
+// ---------- events ----------
+$('tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) go(b.dataset.go); });
+$('theme').addEventListener('click', function () { S.theme = S.theme === 'auto' ? 'light' : (S.theme === 'light' ? 'dark' : 'auto'); applyTheme(); save(); });
+$('fMinus').addEventListener('click', function () { S.fs = clamp(S.fs - 2, 14, 34); applyFont(); save(); });
+$('fPlus').addEventListener('click', function () { S.fs = clamp(S.fs + 2, 14, 34); applyFont(); save(); });
+$('shClose').addEventListener('click', closeSheet);
+$('shMark').addEventListener('click', function () {
+  if (!selVerse) return;
+  var k = selVerse.b + ':' + selVerse.c + ':' + selVerse.n;
+  if (S.marks[k]) { delete S.marks[k]; selVerse.node.classList.remove('bm'); } else { S.marks[k] = 1; selVerse.node.classList.add('bm'); }
+  save(); closeSheet();
+});
+$('shCopy').addEventListener('click', function () {
+  if (!selVerse) return;
+  var txt = BIBLE[selVerse.b][selVerse.c - 1][selVerse.n - 1] + ' (' + refText(selVerse.b, selVerse.c, selVerse.n) + ')';
+  var done = function () { $('shCopy').textContent = 'Պատճենվեց'; setTimeout(function () { $('shCopy').textContent = 'Պատճենել'; closeSheet(); }, 700); };
+  try { navigator.clipboard.writeText(txt).then(done, done); } catch (e) { done(); }
+});
+$('file').addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
+window.addEventListener('hashchange', route);
+document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') closeSheet(); });
+
+load();
+if (!S.seed) { S.seed = ((Math.random() * 4294967296) >>> 0) || 1; save(); }
+applyTheme(); applyFont();
+loadBible().then(function (n) { if (n) useBible(n); route(); });
+})();
+</script>
+</body>
+</html>
