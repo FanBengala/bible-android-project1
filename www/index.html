@@ -267,13 +267,23 @@ function useBible(n) { BIBLE = n.books; if (n.names) HY = n.names; }
 
 // ---------- daily reminder (Android, Capacitor Local Notifications) ----------
 var VERSE_REFS = [[42, 3, 16], [18, 23, 1], [49, 4, 13], [5, 1, 9], [22, 41, 10], [23, 29, 11], [44, 8, 28], [19, 3, 5], [39, 11, 28], [18, 46, 1], [18, 119, 105], [39, 6, 33], [42, 14, 27], [18, 121, 1]];
-function LN() { var C = window.Capacitor; return C && C.Plugins && C.Plugins.LocalNotifications; }
-function isNative() { var C = window.Capacitor; return !!(LN() && C.isNativePlatform && C.isNativePlatform()); }
+function LN() {
+  var C = window.Capacitor; if (!C) return null;
+  if (C.Plugins && C.Plugins.LocalNotifications) return C.Plugins.LocalNotifications;
+  try { if (C.registerPlugin) { var p = C.registerPlugin('LocalNotifications'); if (p && p.schedule) return p; } } catch (e) {}
+  if (C.nativePromise) {   // direct call into the native bridge, works even when the plugin proxy is not created
+    var call = function (m) { return function (o) { return C.nativePromise('LocalNotifications', m, o || {}); }; };
+    return { requestPermissions: call('requestPermissions'), checkPermissions: call('checkPermissions'), schedule: call('schedule'), cancel: call('cancel'), createChannel: call('createChannel') };
+  }
+  return null;
+}
+function isNative() { var C = window.Capacitor; return !!(C && (C.isNativePlatform ? C.isNativePlatform() : (C.getPlatform && C.getPlatform() !== 'web'))); }
+function ensureChannel(ln) { try { return Promise.resolve(ln.createChannel({ id: 'reading', name: 'Ընթերցանության հիշեցում', description: 'Ամենօրյա հիշեցում', importance: 4, visibility: 1 })).catch(function () {}); } catch (e) { return Promise.resolve(); } }
 function applyReminder() {
   if (!isNative() || !BIBLE) return;
-  var ln = LN(), ids = [], i;
+  var ln = LN(), ids = [], i; if (!ln) return;
   for (i = 0; i < 60; i++) ids.push({ id: 1001 + i });
-  ln.cancel({ notifications: ids }).catch(function () {}).then(function () {
+  ensureChannel(ln).then(function () { return ln.cancel({ notifications: ids }); }).catch(function () {}).then(function () {
     if (!S.remind.on) return;
     var hm = S.remind.t.split(':'), now = new Date(), list = [], skipToday = streakInfo().doneToday;
     var refs = VERSE_REFS.filter(function (r) { return BIBLE[r[0]] && BIBLE[r[0]][r[1] - 1] && BIBLE[r[0]][r[1] - 1][r[2] - 1]; });
@@ -281,10 +291,10 @@ function applyReminder() {
       var d = addDays(today0(), i); d.setHours(+hm[0], +hm[1], 0, 0);
       if (d <= now || (i === 0 && skipToday)) continue;
       var r = refs[i % refs.length];
-      list.push({ id: 1001 + i, title: 'Ժամանակն է կարդալու Աստվածաշունչը 📖', body: BIBLE[r[0]][r[1] - 1][r[2] - 1] + ' (' + refText(r[0], r[1], r[2]) + ')', smallIcon: 'ic_stat_bible', schedule: { at: d, allowWhileIdle: true } });
+      list.push({ id: 1001 + i, title: 'Ժամանակն է կարդալու Աստվածաշունչը 📖', body: BIBLE[r[0]][r[1] - 1][r[2] - 1] + ' (' + refText(r[0], r[1], r[2]) + ')', smallIcon: 'ic_stat_bible', channelId: 'reading', schedule: { at: d.toISOString(), allowWhileIdle: true } });
     }
     if (list.length) return ln.schedule({ notifications: list });
-  }).catch(function () {});
+  }).catch(function (e) { S.remindErr = String((e && e.message) || e); });
 }
 
 // ---------- router ----------
@@ -436,24 +446,37 @@ function viewToday(v) {
   rh.appendChild(ti); rc.appendChild(rh);
   var rm = el('p', 'small muted'); rm.style.margin = '8px 0';
   var rb = btn('', 'btn primary'); rb.style.width = '100%';
+  var tb = btn('Ուղարկել փորձնական ծանուցում', 'btn small'); tb.style.cssText = 'width:100%;margin-top:8px';
   function paint() {
     rb.textContent = S.remind.on ? 'Անջատել հիշեցումը' : 'Միացնել հիշեցումը'; rb.classList.toggle('done', S.remind.on);
     rm.textContent = !isNative() ? 'Հիշեցումն աշխատում է միայն Android հավելվածում։'
       : (S.remind.on ? 'Ամեն օր ժամը ' + S.remind.t + '-ին կստանաք ծանուցում՝ մի համարով Աստվածաշնչից։' : 'Ընտրեք ժամը, և ամեն օր կստանաք հիշեցում՝ մի համարով Աստվածաշնչից։');
   }
+  function fail(e) { rm.textContent = 'Սխալ՝ ' + String((e && e.message) || e || 'անհայտ'); }
+  function withPerm(then) {
+    var ln = LN();
+    if (!ln) { rm.textContent = 'Ծանուցումների պլագինը չկա այս տարբերակում։ Ստուգեք, որ package.json-ը թարմացված է, և նորից կառուցեք հավելվածը։'; return; }
+    Promise.resolve(ln.requestPermissions()).then(function (r2) {
+      if (r2 && r2.display === 'granted') then(ln);
+      else rm.textContent = 'Ծանուցումները թույլատրված չեն։ Թույլատրեք դրանք հեռախոսի կարգավորումներում (Հավելվածներ → Հաղթանակի Ծրագիր → Ծանուցումներ)։';
+    }).catch(fail);
+  }
   ti.addEventListener('change', function () { if (!ti.value) return; S.remind.t = ti.value; save(); paint(); if (S.remind.on) applyReminder(); });
   rb.addEventListener('click', function () {
     if (!isNative()) return;
     if (S.remind.on) { S.remind.on = false; save(); applyReminder(); paint(); return; }
-    var ln = LN();
-    ln.requestPermissions().then(function (r2) {
-      if (r2 && r2.display === 'granted') { S.remind.on = true; save(); applyReminder(); }
-      else rm.textContent = 'Ծանուցումները թույլատրված չեն։ Թույլատրեք դրանք հեռախոսի կարգավորումներում։';
-      if (S.remind.on) paint();
-    }).catch(function () { rm.textContent = 'Չհաջողվեց միացնել հիշեցումը։'; });
+    withPerm(function () { S.remind.on = true; save(); applyReminder(); paint(); });
   });
-  if (!isNative()) { rb.disabled = true; ti.disabled = true; }
-  paint(); rc.appendChild(rm); rc.appendChild(rb); v.appendChild(rc);
+  tb.addEventListener('click', function () {
+    withPerm(function (ln) {
+      var at = new Date(Date.now() + 5000);
+      ensureChannel(ln).then(function () {
+        return ln.schedule({ notifications: [{ id: 999, title: 'Հաղթանակի Ծրագիր 📖', body: 'Ծանուցումը աշխատում է։', smallIcon: 'ic_stat_bible', channelId: 'reading', schedule: { at: at.toISOString(), allowWhileIdle: true } }] });
+      }).then(function () { rm.textContent = 'Ծանուցումը կգա 5 վայրկյանից։ Փակեք հավելվածը կամ անջատեք էկրանը։'; }).catch(fail);
+    });
+  });
+  if (!isNative()) { rb.disabled = true; ti.disabled = true; tb.hidden = true; }
+  paint(); rc.appendChild(rm); rc.appendChild(rb); rc.appendChild(tb); v.appendChild(rc);
 
   v.appendChild(el('p', 'note', 'Առաջընթացը և նշումները պահվում են միայն այս սարքում։'));
 }
