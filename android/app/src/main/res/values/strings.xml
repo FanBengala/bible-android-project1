@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Աստվածաշունչ</string>
-    <string name="title_activity_main">Աստվածաշունչ</string>
+    <string name="app_name">Հաղթանակի Ծրագիր</string>
+    <string name="title_activity_main">Հաղթանակի Ծրագիր</string>
     <string name="package_name">am.bible.reader</string>
     <string name="custom_url_scheme">am.bible.reader</string>
 </resources>
