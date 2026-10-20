@@ -442,6 +442,17 @@ function viewToday(v) {
   rh.appendChild(ti); rc.appendChild(rh);
   var rm = el('p', 'small muted'); rm.style.margin = '8px 0';
   var rb = btn('', 'btn primary'); rb.style.width = '100%';
+  var tb = btn('🔔 Թեստ', 'btn'); tb.style.cssText = 'width:100%;margin-top:6px';
+tb.addEventListener('click', function () {
+  var ln = LN();
+  if (!ln) { rm.textContent = 'Ծանուցումները հասանելի չեն այս սարքում։'; return; }
+  Promise.resolve(ln.requestPermissions()).then(function (r2) {
+    if (!r2 || r2.display !== 'granted') { rm.textContent = 'Թույլատրեք ծանուցումները կարգավորումներում։'; return; }
+    return ensureChannel(ln).then(function () {
+      return ln.schedule({ notifications: [{ id: 9999, title: 'Թեստ', body: 'Ծանուցումը աշխատում է։', channelId: 'reading', schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } }] });
+    }).then(function () { rm.textContent = 'Թեստային ծանուցումը կգա 5 վայրկյանից։'; });
+  }).catch(function (e) { rm.textContent = 'Սխալ՝ ' + String((e && e.message) || e); });
+});
   function paint() {
     rb.textContent = S.remind.on ? 'Անջատել հիշեցումը' : 'Միացնել հիշեցումը'; rb.classList.toggle('done', S.remind.on);
     rm.textContent = S.remind.on ? 'Ամեն օր ժամը ' + S.remind.t + '-ին կստանաք հիշեցում։' : 'Ընտրեք ժամը, և ամեն օր կստանաք հիշեցում։';
