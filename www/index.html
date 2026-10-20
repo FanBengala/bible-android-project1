@@ -460,7 +460,7 @@ function viewToday(v) {
     if (S.remind.on) { S.remind.on = false; save(); applyReminder(); paint(); return; }
     withPerm(function () { S.remind.on = true; save(); applyReminder(); paint(); });
   });
-  paint(); rc.appendChild(rm); rc.appendChild(rb); rc.appendChild(tb); v.appendChild(rc);
+  paint(); rc.appendChild(rm); rc.appendChild(rb); v.appendChild(rc);
 
   v.appendChild(el('p', 'note', 'Առաջընթացը և նշումները պահվում են միայն այս սարքում։'));
 }
