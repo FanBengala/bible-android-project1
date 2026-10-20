@@ -20,6 +20,7 @@ jobs:
         with:
           packages: platform-tools
       - run: npm install
+      - run: npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff'
       - run: npx cap sync android
       - uses: gradle/actions/setup-gradle@v4
       - run: chmod +x gradlew && ./gradlew assembleDebug
