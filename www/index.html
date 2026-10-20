@@ -287,7 +287,7 @@ function applyReminder() {
     for (i = 0; i < 60; i++) {
       var d = addDays(today0(), i); d.setHours(+hm[0], +hm[1], 0, 0);
       if (d <= now || (i === 0 && skipToday)) continue;
-      list.push({ id: 1001 + i, title: 'Ժամանակն է կարդալու Աստվածաշունչը 📖', body: '', smallIcon: 'ic_stat_bible', channelId: 'reading', schedule: { at: d.toISOString(), allowWhileIdle: true } });
+      list.push({ id: 1001 + i, title: 'Ժամանակն է կարդալու Աստվածաշունչը 📖', body: 'Բացեք «Հաղթանակի Ծրագիր» հավելվածը և շարունակեք օրվա ընթերցումը։', channelId: 'reading', schedule: { at: d, allowWhileIdle: true } });
     }
     if (list.length) return ln.schedule({ notifications: list });
   }).catch(function (e) { S.remindErr = String((e && e.message) || e); });
