@@ -154,12 +154,12 @@
 <div id="splash" style="position:fixed;inset:0;z-index:99999;background:#000 url('splash.jpg') center/cover no-repeat;transition:opacity .4s"></div>
 <div id="app">
   <script>
-window.addEventListener('load', function () {
+window.addEventListener('DOMContentLoaded', function () {
   setTimeout(function () {
     var s = document.getElementById('splash');
     s.style.opacity = '0';
     setTimeout(function () { s.remove(); }, 400);
-  }, 1500);
+  }, 2000);
 });
 </script>
   <header class="top">
