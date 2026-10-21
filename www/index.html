@@ -152,6 +152,15 @@
 </head>
 <body>
 <div id="app">
+  <script>
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    var s = document.getElementById('splash');
+    s.style.opacity = '0';
+    setTimeout(function () { s.remove(); }, 400);
+  }, 1500);
+});
+</script>
   <header class="top">
     <button class="ibtn" id="back" hidden aria-label="Հետ">‹</button>
     <h1 id="title">Հաղթանակի Ծրագիր</h1>
