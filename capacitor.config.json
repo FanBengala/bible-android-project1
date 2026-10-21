@@ -2,11 +2,4 @@
   "appId": "am.bible.reader",
   "appName": "Հաղթանակի Ծրագիր",
   "webDir": "www",
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 0,
-      "launchAutoHide": true,
-      "showSpinner": false
-    }
-  }
 }
