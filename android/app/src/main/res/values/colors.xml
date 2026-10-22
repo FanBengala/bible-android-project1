@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1F4D41</color>
+    <color name="colorPrimaryDark">#16312B</color>
+    <color name="colorAccent">#9B1B3A</color>
+    <!-- Фон приложения: светлый режим телефона -->
+    <color name="app_bg">#EDF1EC</color>
+    <!-- Цвет фона заставки (совпадает с краями splash.jpg) -->
+    <color name="splash_beige">#ECDCC2</color>
+</resources>
