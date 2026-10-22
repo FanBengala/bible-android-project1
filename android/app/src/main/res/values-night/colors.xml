@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#5FB597</color>
+    <color name="colorPrimaryDark">#0F1916</color>
+    <color name="colorAccent">#EC6B88</color>
+    <!-- Фон приложения: ночной режим телефона -->
+    <color name="app_bg">#0F1916</color>
+</resources>
