@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>Հաղթանակի Ծրագիր</title>
 <style>
 @font-face{font-family:"Noto Serif Armenian";font-weight:400;font-display:swap;src:url(fonts/noto-serif-armenian-armenian-400-normal.woff2) format("woff2");}
@@ -11,6 +12,7 @@
 @font-face{font-family:"Noto Sans Armenian";font-weight:600;font-display:swap;src:url(fonts/noto-sans-armenian-armenian-600-normal.woff2) format("woff2");}
 </style>
 <style>
+  #splash { position: fixed; inset: 0; z-index: 99999; background: #ECDCC2 url(splash.jpg) center / cover no-repeat; transition: opacity .4s; }
   :root {
     --bg: #edf1ec; --panel: #f8faf7; --ink: #16312b; --muted: #55695f; --line: #cfdad3;
     --primary: #1f4d41; --primary-text: #ffffff; --accent: #9b1b3a; --track: #d8e2dc; --cell: #e1e9e4;
@@ -151,18 +153,25 @@
 </style>
 </head>
 <body>
-<div id="splash" style="position:fixed;inset:0;z-index:99999;background:#ECDCC2 url('splash_icon_web.png') center/288px 288px no-repeat;transition:opacity .4s"></div>
-<div id="app">
-  <script>
-window.addEventListener('DOMContentLoaded', function () {
-  setTimeout(function () {
+<div id="splash"></div>
+<script>
+(function () {
+  var t0 = Date.now(), done = false;
+  function hide() {
+    if (done) return; done = true;
     var s = document.getElementById('splash');
+    if (!s) return;
     s.style.opacity = '0';
-    setTimeout(function () { s.remove(); }, 400);
-  }, 600);
-});
+    setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 450);
+  }
+  window.addEventListener('load', function () {
+    setTimeout(hide, Math.max(0, 900 - (Date.now() - t0)));
+  });
+  setTimeout(hide, 4000);
+})();
 </script>
-  <header class="top">
+<div id="app">
+    <header class="top">
     <button class="ibtn" id="back" hidden aria-label="Հետ">‹</button>
     <h1 id="title">Հաղթանակի Ծրագիր</h1>
     <button class="ibtn" id="fMinus" hidden aria-label="Փոքրացնել տառաչափը">A−</button>
